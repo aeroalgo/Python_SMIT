@@ -1,0 +1,35 @@
+x-backend-env:
+  &backend-env
+    PSQL_HOST: ${PSQL_HOST}
+    PSQL_PORT: ${PSQL_PORT}
+    PSQL_USER: ${PSQL_USER}
+    PSQL_PASS: ${PSQL_PASS}
+    PSQL_DB: ${PSQL_DB}
+    APP_PORT: ${APP_PORT}
+    KAFKA_HOST: ${KAFKA_HOST}
+    KAFKA_PORT: ${KAFKA_PORT}
+    URL: ${URL}
+    PRODUCE_TOPIC: ${PRODUCE_TOPIC}
+    JWK: ${JWK}
+
+
+x-backend:
+  &backend
+  build:
+    context: ../../
+    dockerfile: docker/dev/Dockerfile
+  restart: on-failure
+  tty: true
+  volumes:
+    - "../../:/application"
+  environment:
+    <<: *backend-env
+
+
+services:
+
+  # ####################################################################################################################
+  # Веб-сервисы (backend)
+  # ####################################################################################################################
+  backend:
+    <<: *backend
