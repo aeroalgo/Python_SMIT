@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 import sqlalchemy
@@ -53,7 +54,7 @@ PaginateQueryParams = PaginateQueryParams.update(
 )
 async def paginate(
     request: Request,
-    cost: float,
+    cost: Optional[float | None] = None,
     db_session: AsyncSession = Depends(get_session),
     auth_context: IAuthContext = Depends(get_auth_context),
     query_params: dict = Depends(PaginateQueryParams),
@@ -64,10 +65,12 @@ async def paginate(
         query_params=query_params,
         disable_joinedload=True,
     )
-    data_cost = parse_obj_as(list[IRead], data.items)
-    data_cost = [x.dict() | {"cost": cost} for x in data_cost]
-    data.items = data_cost
-    await producer.send(value="123")
+    if cost:
+        data_cost = parse_obj_as(list[IRead], data.items)
+        data_cost = [x.dict() | {"cost": cost} for x in data_cost]
+        data.items = data_cost
+    msg = f"{request.scope.get('path')} {request.scope.get('query_string')} {auth_context.user.email}"
+    await producer.send(value=msg)
     return IGetResponseBase[Page[IRead]](data=data)
 
 
