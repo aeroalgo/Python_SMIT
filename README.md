@@ -71,134 +71,87 @@ make create migrations name=init
 
 ## Start Project
 
-1. Создать симлинки
+1. cd docker/dev
 ```sh
-cp .env.example .env.development && ln -sf .env.development .env
+docker-compose up -d
 ```
 
-2. Загрузить .env в окружение
+2. Создать пользователя
 ```sh
-source .env
+POST http://127.0.0.1:8000/api/v1/user
+{
+    "first_name": "test_user",
+    "last_name": "test_user",
+    "password": "testpass",
+    "email": "test@test.ru"
+}
 ```
 
-3. Install pyenv
-https://github.com/pyenv/pyenv#installation
+3. Авторизация http://127.0.0.1:8000/api/v1/auth/basic
+Form data 
+username = test@test.ru
+password = testpass
+Получаем access_token
 
-4. Install poetry
+4. Сохраняем данные из задания 
 ```sh
-curl -sSL https://install.python-poetry.org | python3 -
+POST  http://127.0.0.1:8000/api/v1/cargo_insurance/create_all
+
+{
+    "2020-06-01": [
+        {
+            "cargo_type": "Glass",
+            "rate": "0.04"
+        },
+        {
+            "cargo_type": "Other",
+            "rate": "0.01"
+        }
+    ],
+    "2020-07-01": [
+        {
+            "cargo_type": "Glass",
+            "rate": "0.035"
+        },
+        {
+            "cargo_type": "Other",
+            "rate": "0.015"
+        }
+    ]
+}
+
+Bearer token ****
+
+TODO Очень плохая струкрута которую сложно валидировать
 ```
 
-5. Install python
+5. Синтаксис запросов 
+запрос http://0.0.0.0:8000/api/v1/cargo_insurance/list?filters={"cargo_type": ["Glass"]}&period=2020-06-01:2020-06-01&cost=500
+
+    "data": {
+        "items": [
+            {
+                "base_fields": {},
+                "id": "f365cd38-f419-4408-86a8-a158d7ad6590",
+                "updated_at": "2024-12-01T13:07:03",
+                "created_at": "2024-12-01T13:07:03",
+                "updated_by": "f8779c73-02a5-4d09-b001-6da2167f7c0d",
+                "created_by": "f8779c73-02a5-4d09-b001-6da2167f7c0d",
+                "changelog": [],
+                "cost": 500.0,
+                "date": "2020-06-01T00:00:00",
+                "cargo_type": "Glass",
+                "rate": 0.04,
+                "full_cost": 20.0
+            }
+        ],
+        "total": 1,
+        "page": 1,
+        "size": 50,
+        "pages": 1
+    }
 ```sh
-pyenv install 3.11.5 && pyenv global 3.11.5
+в запросах filters можно указать любой атрибут и значение.
+period можно указать любую дату тарифа и посчитать стоимость страхования
+если не указывать ни какие фильтры то посчитает для всех тарифов и для всех дат.
 ```
-
-6. Set interpreter
-```sh
-poetry env use 3.11.5
-```
-
-7. Install dependencies.
-```sh
-poetry lock --no-update && poetry install --no-root
-```
-
-8. Run project
-```sh
-poetry run python3 app/main.py
-```
-
-9. Setup pre-commit hooks
-```sh
-pre-commit install
-```
-core.hooksPath should be deleted
-
-## Troubleshoot & Debug
-
-1. Kill service on specific port
-```sh
-fuser -k 8000/tcp
-```
-
-1. Test API via curl
-```sh
-curl -X POST -d '' http://0.0.0.0:8000/api/v1/auth/
-```
-
-### Adding a new route
-
-For CRUD applications, follow the example in [resource.rs](apps/api.routes/resource.rs) and add your resource route to:
-
-- ```GET /<resource-name>/{:id}```
-- ```GET /<resource-name>/list```
-- ```POST /<resource-name>```
-- ```PUT /<resource-name>/{:id}```
-- ```DELETE /<resource-name>/{:id}```
-
-
-### Adding a new model
-
-ToDo
-
-### Tests
-
-ToDo
-
-## Migrations
-
-Migrations are run using alembic.
-We are using Makefile.
-
-And fill in `upgrade` and `downgrade` methods. For more information see
-[Alembic's official documentation](https://alembic.sqlalchemy.org/en/latest/tutorial.html#create-a-migration-script).
-
-## Pre-Commit
-
-1. **Install `pre-commit`** (if you haven't already):
-   ```bash
-   pip install pre-commit
-   ```
-
-2. **Install the pre-commit hooks** specified in your `.pre-commit-config.yaml` file by running:
-   ```bash
-   pre-commit install
-   ```
-   This command sets up pre-commit to automatically run the hooks defined in your configuration before each commit.
-
-3. **Run the hooks manually (optional):** If you want to run the hooks on all files (instead of just the staged files), you can use:
-   ```bash
-   pre-commit run --all-files
-   ```
-
-Once installed, each time you make a commit, `pre-commit` will automatically run `isort`, `black`, `ruff`, and `mypy` to format and lint your code as specified.
-
-### Connecting to a source DB
-
-ToDo
-
-## Tags
-
-Tags allow you to identify specific release versions of your code. 
-You can think of a tag as a branch that doesn't change. 
-Once it is created, it loses the ability to change the history of commits.
-Tags are just the repository frozen in time.
-
-## Database performance check
-
-```
-wrk -c30 -t3 -d10s  -H "Authorization: bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcnRlbS5rdXN0aWtvdkBnbWFpbC5jb20iLCJ1aWQiOjUsImZuIjpudWxsLCJsbiI6bnVsbCwicGVybWlzc2lvbnMiOiJ1c2VyIiwiZXhwIjoxNjU0MDIxODg2fQ.439CjqvKtBMvIXBEmH0FLW98Te51ur-VBlTsaS7AkhI" http://localhost:8888/api/users/me  --timeout 5
-Running 10s test @ http://localhost:8888/api/users/me
-  3 threads and 30 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    49.86ms   23.51ms 167.93ms   67.88%
-    Req/Sec   201.13     28.65   343.00     71.00%
-  6013 requests in 10.01s, 1.18MB read
-Requests/sec:    600.77
-Transfer/sec:    121.03KB
-
-
-##  Changing the route in the API Gateway
-```
-in the api gateway you need to replace index.html with maintenance.html in the / and /{files+} sections
