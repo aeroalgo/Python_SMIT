@@ -13,7 +13,7 @@ SECRETS_PATH = {
     "dev": f"{ROOT_DIR}/docker/dev/.env",
     "local": f"{ROOT_DIR}/.env",
 }
-SECRETS_PROVIDER: Optional[Literal["aws", "yc", "dev", "prod", "local"]] = "local"
+SECRETS_PROVIDER: Optional[Literal["aws", "yc", "dev", "prod", "local"]] = "dev"
 
 
 class Settings(BaseSettings):

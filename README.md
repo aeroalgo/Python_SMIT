@@ -164,3 +164,17 @@ period можно указать любую дату тарифа и посчи�
 запрос http://0.0.0.0:8000/api/v1/cargo_insurance/list?fsearch=["entity value"]
 
 ```
+
+
+5. Create tariff
+
+```sh
+запрос POST http://0.0.0.0:8000/api/v1/cargo_insurance
+
+payload {
+    "cargo_type": "Glass",
+    "rate": "0.04",
+    "date": "2020-06-01"
+}
+
+```
