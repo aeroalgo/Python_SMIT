@@ -72,8 +72,6 @@ nohup.out
 venv_*
 venv
 .prettierrc
-.env
-.env_
 .pytest_cache
 .ruff_cache
 
@@ -332,7 +330,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/
